@@ -1,5 +1,5 @@
-import express, {json, NextFunction, Request, Response} from 'express';
-import mongoose from 'mongoose';
+import express, { json, NextFunction, Request, Response } from 'express';
+import mongoose , { Error } from 'mongoose';
 import router from './routes';
 import { RequestCustom } from './types';
 
