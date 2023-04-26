@@ -68,12 +68,12 @@ export const patchUser = async <T>(req: RequestCustom, res: Response, info: T) =
   }
 };
 
-export const patchUserInfo = (req: RequestCustom, res: Response) => {
+export const patchUserInfo = async (req: RequestCustom, res: Response) => {
   const { name, about } = req.body;
-  patchUser<Omit<IUser, 'avatar'>>(req, res, { name, about });
+  await patchUser<Omit<IUser, 'avatar'>>(req, res, { name, about });
 };
 
 export const patchUserAvatar = async (req: RequestCustom, res: Response) => {
   const { avatar } = req.body;
-  patchUser<Pick<IUser, 'avatar'>>(req, res, { avatar });
+  await patchUser<Pick<IUser, 'avatar'>>(req, res, { avatar });
 };
