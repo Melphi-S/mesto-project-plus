@@ -38,13 +38,15 @@ export const deleteCard = async (req: RequestCustom, res: Response) => {
   }
 };
 
-export const likeCard = async (req: RequestCustom, res: Response) => {
+export const updateCardLikes = async (req: RequestCustom, res: Response, updateParam: 'add' | 'pull') => {
   try {
     const { cardId } = req.params;
 
     const likedCard = await Card.findByIdAndUpdate(
       cardId,
-      { $addToSet: { likes: req.user?._id } },
+      updateParam === 'add'
+        ? { $addToSet: { likes: req.user?._id } }
+        : { $pull: { likes: req.user?._id } as any },
       { new: true },
     ).orFail();
 
@@ -54,18 +56,6 @@ export const likeCard = async (req: RequestCustom, res: Response) => {
   }
 };
 
-export const dislikeCard = async (req: RequestCustom, res: Response) => {
-  try {
-    const { cardId } = req.params;
+export const likeCard = async (req: RequestCustom, res: Response) => updateCardLikes(req, res, 'add');
 
-    const dislikedCard = await Card.findByIdAndUpdate(
-      cardId,
-      { $pull: { likes: req.user?._id } as any },
-      { new: true },
-    ).orFail();
-
-    return res.status(HttpStatusCode.OK).send(dislikedCard);
-  } catch (e) {
-    return catchError(e, res);
-  }
-};
+export const dislikeCard = async (req: RequestCustom, res: Response) => updateCardLikes(req, res, 'pull');
