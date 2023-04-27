@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
-import { Error } from 'mongoose';
 import Card from '../models/card';
 import HttpStatusCode from '../types/HttpStatusCode';
-import { ErrorMessage } from '../types/ErrorMessage';
 import { RequestCustom } from '../types';
-import { catchCardError } from '../errors/cardErrors';
+import { catchError } from '../errors/errors';
 
 export const getCards = async (req: Request, res: Response) => {
   try {
@@ -12,15 +10,7 @@ export const getCards = async (req: Request, res: Response) => {
 
     return res.status(HttpStatusCode.OK).send(cards);
   } catch (e) {
-    if (e instanceof Error.DocumentNotFoundError) {
-      return res
-        .status(HttpStatusCode.BAD_REQUEST)
-        .send({ message: ErrorMessage.PAGE_NOT_FOUND });
-    }
-
-    return res
-      .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-      .send({ message: ErrorMessage.INTERNAL_SERVER_ERROR });
+    return catchError(e, res);
   }
 };
 
@@ -33,16 +23,7 @@ export const createCard = async (req: RequestCustom, res: Response) => {
 
     return res.status(HttpStatusCode.CREATED).send(newCard);
   } catch (e) {
-    if (e instanceof Error.ValidationError
-      || e instanceof Error.CastError) {
-      return res
-        .status(HttpStatusCode.BAD_REQUEST)
-        .send({ message: ErrorMessage.INVALID_DATA });
-    }
-
-    return res
-      .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-      .send({ message: ErrorMessage.INTERNAL_SERVER_ERROR });
+    return catchError(e, res);
   }
 };
 
@@ -53,7 +34,7 @@ export const deleteCard = async (req: RequestCustom, res: Response) => {
 
     return res.status(HttpStatusCode.OK).send(deletedCard);
   } catch (e) {
-    return catchCardError(e, res);
+    return catchError(e, res);
   }
 };
 
@@ -69,7 +50,7 @@ export const likeCard = async (req: RequestCustom, res: Response) => {
 
     return res.status(HttpStatusCode.OK).send(likedCard);
   } catch (e) {
-    return catchCardError(e, res);
+    return catchError(e, res);
   }
 };
 
@@ -85,6 +66,6 @@ export const dislikeCard = async (req: RequestCustom, res: Response) => {
 
     return res.status(HttpStatusCode.OK).send(dislikedCard);
   } catch (e) {
-    return catchCardError(e, res);
+    return catchError(e, res);
   }
 };

@@ -6,4 +6,5 @@ export enum ErrorMessage {
   INVALID_DATA = 'Переданы некорректные данные',
   CARD_NOT_FOUND = 'Карточка не найдена',
   PAGE_NOT_FOUND = 'Страница не найдена',
+  DATA_NOT_FOUND = 'Данные не найдены'
 }

@@ -3,7 +3,7 @@ import { Response } from 'express';
 import HttpStatusCode from '../types/HttpStatusCode';
 import { ErrorMessage } from '../types/ErrorMessage';
 
-export const catchUserError = (e: unknown, res: Response) => {
+export const catchError = (e: unknown, res: Response) => {
   if (e instanceof Error.ValidationError
     || e instanceof Error.CastError) {
     return res
@@ -14,7 +14,7 @@ export const catchUserError = (e: unknown, res: Response) => {
   if (e instanceof Error.DocumentNotFoundError) {
     return res
       .status(HttpStatusCode.NOT_FOUND)
-      .send({ message: ErrorMessage.USER_NOT_FOUND });
+      .send({ message: ErrorMessage.DATA_NOT_FOUND });
   }
 
   return res

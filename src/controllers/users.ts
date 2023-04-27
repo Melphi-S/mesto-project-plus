@@ -1,25 +1,15 @@
 import { Request, Response } from 'express';
-import { Error } from 'mongoose';
 import User, { IUser } from '../models/user';
 import HttpStatusCode from '../types/HttpStatusCode';
-import { ErrorMessage } from '../types/ErrorMessage';
 import { RequestCustom } from '../types';
-import { catchUserError } from '../errors/userErrors';
+import { catchError } from '../errors/errors';
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.find({}).orFail();
     return res.status(HttpStatusCode.OK).send(users);
   } catch (e) {
-    if (e instanceof Error.DocumentNotFoundError) {
-      return res
-        .status(HttpStatusCode.BAD_REQUEST)
-        .send({ message: ErrorMessage.PAGE_NOT_FOUND });
-    }
-
-    return res
-      .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-      .send({ message: ErrorMessage.INTERNAL_SERVER_ERROR });
+    return catchError(e, res);
   }
 };
 
@@ -30,7 +20,7 @@ export const getUser = async (req: Request, res: Response) => {
 
     return res.status(HttpStatusCode.OK).send(user);
   } catch (e) {
-    return catchUserError(e, res);
+    return catchError(e, res);
   }
 };
 
@@ -41,16 +31,7 @@ export const createUser = async (req: Request, res: Response) => {
     const newUser = await User.create({ name, about, avatar });
     return res.status(HttpStatusCode.CREATED).send(newUser);
   } catch (e) {
-    if (e instanceof Error.ValidationError
-      || e instanceof Error.CastError) {
-      return res
-        .status(HttpStatusCode.BAD_REQUEST)
-        .send({ message: ErrorMessage.INVALID_DATA });
-    }
-
-    return res
-      .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-      .send({ message: ErrorMessage.INTERNAL_SERVER_ERROR });
+    return catchError(e, res);
   }
 };
 
@@ -64,7 +45,7 @@ export const patchUser = async <T>(req: RequestCustom, res: Response, info: T) =
 
     return res.status(HttpStatusCode.OK).send(patchedUser);
   } catch (e) {
-    return catchUserError(e, res);
+    return catchError(e, res);
   }
 };
 
