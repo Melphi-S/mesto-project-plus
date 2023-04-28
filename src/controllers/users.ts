@@ -6,7 +6,7 @@ import { catchError } from '../errors/errors';
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.find({}).orFail();
+    const users = await User.find({});
     return res.status(HttpStatusCode.OK).send(users);
   } catch (e) {
     return catchError(e, res);

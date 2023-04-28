@@ -6,7 +6,7 @@ import { catchError } from '../errors/errors';
 
 export const getCards = async (req: Request, res: Response) => {
   try {
-    const cards = await Card.find({}).populate(['owner', 'likes']).orFail();
+    const cards = await Card.find({}).populate(['owner', 'likes']);
 
     return res.status(HttpStatusCode.OK).send(cards);
   } catch (e) {
