@@ -16,7 +16,6 @@ export const catchError = (e: unknown, res: Response) => {
       .status(HttpStatusCode.NOT_FOUND)
       .send({ message: ErrorMessage.DATA_NOT_FOUND });
   }
-
   return res
     .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
     .send({ message: ErrorMessage.INTERNAL_SERVER_ERROR });

@@ -1,9 +1,14 @@
-import express, { json, NextFunction, Request, Response } from 'express';
-import mongoose , { Error } from 'mongoose';
+import express, {
+  json, NextFunction, Request, Response,
+} from 'express';
+import mongoose from 'mongoose';
 import router from './routes';
 import { RequestCustom } from './types';
+import { createUser, login } from './controllers/users';
 
-const { PORT = 3000 } = process.env;
+require('dotenv').config();
+
+const { PORT } = process.env;
 
 const app = express();
 
@@ -18,6 +23,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   next();
 });
+
+app.post('/signin', login);
+app.post('/signup', createUser);
 
 app.use(router);
 
