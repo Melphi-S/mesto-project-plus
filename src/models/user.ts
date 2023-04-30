@@ -32,6 +32,11 @@ const userSchema = new Schema<IUser>({
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: {
+      validator(value: string) {
+        return /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/.test(value);
+      },
+    },
   },
   email: {
     type: String,
@@ -44,11 +49,12 @@ const userSchema = new Schema<IUser>({
   password: {
     type: String,
     required: true,
+    select: false,
   },
 }, {
   statics: {
     async findUserByCredentials(email: string, password: string) {
-      const user = await this.findOne({ email }).orFail();
+      const user = await this.findOne({ email }).select('+password').orFail();
       const isAuthorized = await bcrypt.compare(password, user.password);
       if (!isAuthorized) {
         throw new Error();

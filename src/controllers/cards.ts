@@ -1,20 +1,20 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import Card from '../models/card';
 import HttpStatusCode from '../types/HttpStatusCode';
 import { RequestCustom } from '../types';
-import { catchError } from '../errors/errors';
+import { ErrorMessage } from '../types/ErrorMessage';
 
-export const getCards = async (req: Request, res: Response) => {
+export const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const cards = await Card.find({}).populate(['owner', 'likes']);
 
     return res.status(HttpStatusCode.OK).send(cards);
-  } catch (e) {
-    return catchError(e, res);
+  } catch (err) {
+    return next(err);
   }
 };
 
-export const createCard = async (req: RequestCustom, res: Response) => {
+export const createCard = async (req: RequestCustom, res: Response, next: NextFunction) => {
   try {
     const { name, link } = req.body;
     const newCard = await Card.create(
@@ -22,23 +22,30 @@ export const createCard = async (req: RequestCustom, res: Response) => {
     );
 
     return res.status(HttpStatusCode.CREATED).send(newCard);
-  } catch (e) {
-    return catchError(e, res);
+  } catch (err) {
+    return next(err);
   }
 };
 
-export const deleteCard = async (req: RequestCustom, res: Response) => {
+export const deleteCard = async (req: RequestCustom, res: Response, next: NextFunction) => {
   try {
     const { cardId } = req.params;
-    const deletedCard = await Card.findByIdAndDelete(cardId).orFail();
+
+    const cardToDelete = await Card.findById(cardId).orFail();
+
+    if (cardToDelete.owner.toString() !== req.user?._id) {
+      throw new Error(ErrorMessage.ACCESS_DENIED);
+    }
+
+    const deletedCard = await Card.findByIdAndRemove(cardId).orFail();
 
     return res.status(HttpStatusCode.OK).send(deletedCard);
-  } catch (e) {
-    return catchError(e, res);
+  } catch (err) {
+    return next(err);
   }
 };
 
-export const updateCardLikes = async (req: RequestCustom, res: Response, updateParam: 'add' | 'pull') => {
+export const updateCardLikes = async (req: RequestCustom, res: Response, next: NextFunction, updateParam: 'add' | 'pull') => {
   try {
     const { cardId } = req.params;
 
@@ -51,11 +58,11 @@ export const updateCardLikes = async (req: RequestCustom, res: Response, updateP
     ).orFail();
 
     return res.status(HttpStatusCode.OK).send(likedCard);
-  } catch (e) {
-    return catchError(e, res);
+  } catch (err) {
+    return next(err);
   }
 };
 
-export const likeCard = async (req: RequestCustom, res: Response) => updateCardLikes(req, res, 'add');
+export const likeCard = async (req: RequestCustom, res: Response, next: NextFunction) => updateCardLikes(req, res, next, 'add');
 
-export const dislikeCard = async (req: RequestCustom, res: Response) => updateCardLikes(req, res, 'pull');
+export const dislikeCard = async (req: RequestCustom, res: Response, next: NextFunction) => updateCardLikes(req, res, next, 'pull');

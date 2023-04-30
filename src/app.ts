@@ -1,10 +1,12 @@
-import express, {
-  json, NextFunction, Request, Response,
-} from 'express';
+import express, { json } from 'express';
 import mongoose from 'mongoose';
+import { errors } from 'celebrate';
 import router from './routes';
-import { RequestCustom } from './types';
 import { createUser, login } from './controllers/users';
+import auth from './middlewares/auth';
+import { requestLogger, errorLogger } from './middlewares/logger';
+import errorHandler from './middlewares/errorHandler';
+import { createUserValidation, loginValidation } from './validation';
 
 require('dotenv').config();
 
@@ -15,19 +17,19 @@ const app = express();
 app.use(json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const reqCustom = req as RequestCustom;
-  reqCustom.user = {
-    _id: '64442b09d347053db3e59b35',
-  };
+app.use(requestLogger);
 
-  next();
-});
+app.post('/signin', loginValidation, login);
+app.post('/signup', createUserValidation, createUser);
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.use(auth);
 
 app.use(router);
+
+app.use(errorLogger);
+
+app.use(errors());
+app.use(errorHandler);
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 

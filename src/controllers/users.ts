@@ -1,34 +1,33 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User, { IUser } from '../models/user';
 import HttpStatusCode from '../types/HttpStatusCode';
 import { RequestCustom } from '../types';
-import { catchError } from '../errors/errors';
 import { ErrorMessage } from '../types/ErrorMessage';
 import { SEVEN_DAYS } from '../variables';
 
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const users = await User.find({});
     return res.status(HttpStatusCode.OK).send(users);
-  } catch (e) {
-    return catchError(e, res);
+  } catch (err) {
+    return next(err);
   }
 };
 
-export const getUser = async (req: Request, res: Response) => {
+export const getUser = async (req: RequestCustom, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId ? req.params.userId : req.user?._id;
     const user = await User.findById(userId).orFail();
 
     return res.status(HttpStatusCode.OK).send(user);
-  } catch (e) {
-    return catchError(e, res);
+  } catch (err) {
+    return next(err);
   }
 };
 
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const {
       name, about, avatar, email, password,
@@ -40,12 +39,16 @@ export const createUser = async (req: Request, res: Response) => {
       name, about, avatar, email, password: hash,
     });
     return res.status(HttpStatusCode.CREATED).send(newUser);
-  } catch (e) {
-    return catchError(e, res);
+  } catch (err) {
+    return next(err);
   }
 };
 
-export const patchUser = async <T>(req: RequestCustom, res: Response, info: T) => {
+export const patchUser = async <T>(
+  req: RequestCustom,
+  res: Response,
+  next: NextFunction,
+  info: T) => {
   try {
     const patchedUser = await User.findByIdAndUpdate(
       req.user?._id,
@@ -54,22 +57,22 @@ export const patchUser = async <T>(req: RequestCustom, res: Response, info: T) =
     ).orFail();
 
     return res.status(HttpStatusCode.OK).send(patchedUser);
-  } catch (e) {
-    return catchError(e, res);
+  } catch (err) {
+    return next(err);
   }
 };
 
-export const patchUserInfo = async (req: RequestCustom, res: Response) => {
+export const patchUserInfo = async (req: RequestCustom, res: Response, next: NextFunction) => {
   const { name, about } = req.body;
-  await patchUser<Pick<IUser, 'name' | 'about'>>(req, res, { name, about });
+  await patchUser<Pick<IUser, 'name' | 'about'>>(req, res, next, { name, about });
 };
 
-export const patchUserAvatar = async (req: RequestCustom, res: Response) => {
+export const patchUserAvatar = async (req: RequestCustom, res: Response, next: NextFunction) => {
   const { avatar } = req.body;
-  await patchUser<Pick<IUser, 'avatar'>>(req, res, { avatar });
+  await patchUser<Pick<IUser, 'avatar'>>(req, res, next, { avatar });
 };
 
-export const login = async (req: RequestCustom, res: Response) => {
+export const login = async (req: RequestCustom, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
     const user = await User.findUserByCredentials(email, password);
@@ -80,9 +83,7 @@ export const login = async (req: RequestCustom, res: Response) => {
       maxAge: SEVEN_DAYS,
       httpOnly: true,
     }).end();
-  } catch (e) {
-    return res
-      .status(HttpStatusCode.UNAUTHORIZED)
-      .send({ message: ErrorMessage.INVALID_EMAIL_OR_PASSWORD });
+  } catch (err) {
+    return next(new Error(ErrorMessage.INVALID_EMAIL_OR_PASSWORD));
   }
 };
