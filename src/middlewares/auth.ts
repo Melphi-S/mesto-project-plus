@@ -1,13 +1,14 @@
 import jwt from 'jsonwebtoken';
 import { Response, NextFunction } from 'express';
 import { RequestCustom } from '../types';
-import { ErrorMessage } from '../types/ErrorMessage';
+import ErrorMessage from '../types/ErrorMessage';
+import UnauthorizedError from '../errors/UnauthorizedError';
 
 export default (req: RequestCustom, res: Response, next: NextFunction) => {
   const { authorization } = req.headers;
 
   if (!authorization) {
-    throw new Error(ErrorMessage.NO_AUTH);
+    return next(new UnauthorizedError(ErrorMessage.NO_AUTH));
   }
 
   const token = authorization.replace('Bearer ', '');
@@ -17,7 +18,7 @@ export default (req: RequestCustom, res: Response, next: NextFunction) => {
   try {
     payload = jwt.verify(token, NODE_ENV === 'production' ? JWT_KEY as string : 'dev-secret') as {_id: string};
   } catch (e) {
-    throw new Error(ErrorMessage.NO_AUTH);
+    return next(new UnauthorizedError(ErrorMessage.NO_AUTH));
   }
 
   req.user = payload;

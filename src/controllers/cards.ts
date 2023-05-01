@@ -2,7 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import Card from '../models/card';
 import HttpStatusCode from '../types/HttpStatusCode';
 import { RequestCustom } from '../types';
-import { ErrorMessage } from '../types/ErrorMessage';
+import ErrorMessage from '../types/ErrorMessage';
+import UnauthorizedError from '../errors/UnauthorizedError';
 
 export const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -34,10 +35,10 @@ export const deleteCard = async (req: RequestCustom, res: Response, next: NextFu
     const cardToDelete = await Card.findById(cardId).orFail();
 
     if (cardToDelete.owner.toString() !== req.user?._id) {
-      throw new Error(ErrorMessage.ACCESS_DENIED);
+      throw new UnauthorizedError(ErrorMessage.ACCESS_DENIED);
     }
 
-    const deletedCard = await Card.findByIdAndRemove(cardId).orFail();
+    const deletedCard = await cardToDelete.deleteOne();
 
     return res.status(HttpStatusCode.OK).send(deletedCard);
   } catch (err) {

@@ -1,13 +1,16 @@
 import mongoose, { Schema, Model } from 'mongoose';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcryptjs';
+import { validLinkRegexp } from '../utils/constants';
+import UnauthorizedError from '../errors/UnauthorizedError';
+import ErrorMessage from '../types/ErrorMessage';
 
 export interface IUser {
   name: string,
   about: string,
   avatar: string,
   email: string,
-  password: string,
+  password?: string,
   _id: string,
 }
 
@@ -33,8 +36,8 @@ const userSchema = new Schema<IUser>({
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
-      validator(value: string) {
-        return /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/.test(value);
+      validator(link: string) {
+        return validLinkRegexp.test(link);
       },
     },
   },
@@ -54,11 +57,18 @@ const userSchema = new Schema<IUser>({
 }, {
   statics: {
     async findUserByCredentials(email: string, password: string) {
-      const user = await this.findOne({ email }).select('+password').orFail();
-      const isAuthorized = await bcrypt.compare(password, user.password);
-      if (!isAuthorized) {
-        throw new Error();
+      const user = await this.findOne({ email }).select('+password');
+
+      if (!user) {
+        throw new UnauthorizedError(ErrorMessage.INVALID_EMAIL_OR_PASSWORD);
       }
+
+      const isAuthorized = await bcrypt.compare(password, user.password as string);
+
+      if (!isAuthorized) {
+        throw new UnauthorizedError(ErrorMessage.INVALID_EMAIL_OR_PASSWORD);
+      }
+
       return user;
     },
   },

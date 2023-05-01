@@ -4,8 +4,7 @@ import jwt from 'jsonwebtoken';
 import User, { IUser } from '../models/user';
 import HttpStatusCode from '../types/HttpStatusCode';
 import { RequestCustom } from '../types';
-import { ErrorMessage } from '../types/ErrorMessage';
-import { SEVEN_DAYS } from '../variables';
+import { SEVEN_DAYS } from '../utils/constants';
 
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -38,7 +37,11 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     const newUser = await User.create({
       name, about, avatar, email, password: hash,
     });
-    return res.status(HttpStatusCode.CREATED).send(newUser);
+
+    const resBody = newUser.toObject();
+    delete resBody.password;
+
+    return res.status(HttpStatusCode.CREATED).send(resBody);
   } catch (err) {
     return next(err);
   }
@@ -84,6 +87,6 @@ export const login = async (req: RequestCustom, res: Response, next: NextFunctio
       httpOnly: true,
     }).end();
   } catch (err) {
-    return next(new Error(ErrorMessage.INVALID_EMAIL_OR_PASSWORD));
+    return next(err);
   }
 };

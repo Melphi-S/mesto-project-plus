@@ -2,7 +2,10 @@ import { NextFunction, Request, Response } from 'express';
 import { Error } from 'mongoose';
 import { ErrorCustom } from '../types';
 import HttpStatusCode from '../types/HttpStatusCode';
-import { ErrorMessage } from '../types/ErrorMessage';
+import ErrorMessage from '../types/ErrorMessage';
+import UnauthorizedError from '../errors/UnauthorizedError';
+import ForbiddenError from '../errors/ForbiddenError';
+import NotFoundError from '../errors/NotFoundError';
 
 export default (err: ErrorCustom | Error, req: Request, res: Response, next: NextFunction) => {
   if ('code' in err && err.code === 11000) {
@@ -11,21 +14,11 @@ export default (err: ErrorCustom | Error, req: Request, res: Response, next: Nex
       .send({ message: ErrorMessage.NOT_UNIQUE_EMAIL });
   }
 
-  if (err.message === ErrorMessage.INVALID_EMAIL_OR_PASSWORD) {
+  if (err instanceof UnauthorizedError
+    || err instanceof ForbiddenError
+    || err instanceof NotFoundError) {
     return res
-      .status(HttpStatusCode.UNAUTHORIZED)
-      .send({ message: err.message });
-  }
-
-  if (err.message === ErrorMessage.NO_AUTH) {
-    return res
-      .status(HttpStatusCode.FORBIDDEN)
-      .send({ message: err.message });
-  }
-
-  if (err.message === ErrorMessage.ACCESS_DENIED) {
-    return res
-      .status(HttpStatusCode.FORBIDDEN)
+      .status(err.httpStatusCode)
       .send({ message: err.message });
   }
 

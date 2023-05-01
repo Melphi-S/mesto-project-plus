@@ -2,11 +2,10 @@ import express, { json } from 'express';
 import mongoose from 'mongoose';
 import { errors } from 'celebrate';
 import router from './routes';
-import { createUser, login } from './controllers/users';
 import auth from './middlewares/auth';
 import { requestLogger, errorLogger } from './middlewares/logger';
 import errorHandler from './middlewares/errorHandler';
-import { createUserValidation, loginValidation } from './validation';
+import rootRouter from './routes/root';
 
 require('dotenv').config();
 
@@ -19,8 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(requestLogger);
 
-app.post('/signin', loginValidation, login);
-app.post('/signup', createUserValidation, createUser);
+app.use(rootRouter);
 
 app.use(auth);
 
