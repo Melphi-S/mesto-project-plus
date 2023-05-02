@@ -44,7 +44,7 @@ export const patchUserInfoValidation = celebrate({
 
 export const patchUserAvatarValidation = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required().uri(),
+    avatar: Joi.string().required().pattern(validLinkRegexp),
   }),
 });
 

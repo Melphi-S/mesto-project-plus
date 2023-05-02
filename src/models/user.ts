@@ -1,4 +1,4 @@
-import mongoose, { Schema, Model } from 'mongoose';
+import mongoose, { Schema, Model, Document } from 'mongoose';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcryptjs';
 import { validLinkRegexp } from '../utils/constants';
@@ -16,7 +16,7 @@ export interface IUser {
 
 export interface IUserModel extends Model<IUser> {
   // eslint-disable-next-line no-unused-vars
-  findUserByCredentials(email: string, password: string): IUser,
+  findUserByCredentials(email: string, password: string): Document<unknown, any, IUser>,
 }
 
 const userSchema = new Schema<IUser>({
