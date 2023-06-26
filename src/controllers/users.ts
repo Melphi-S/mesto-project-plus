@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { UpdateQuery } from 'mongoose';
 import User, { IUser } from '../models/user';
 import HttpStatusCode from '../types/HttpStatusCode';
 import { RequestCustom } from '../types';
@@ -47,11 +48,12 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
   }
 };
 
-export const patchUser = async <T>(
+export const patchUser = async (
   req: RequestCustom,
   res: Response,
   next: NextFunction,
-  info: T) => {
+  info: UpdateQuery<IUser>,
+) => {
   try {
     const patchedUser = await User.findByIdAndUpdate(
       req.user?._id,
@@ -67,12 +69,12 @@ export const patchUser = async <T>(
 
 export const patchUserInfo = async (req: RequestCustom, res: Response, next: NextFunction) => {
   const { name, about } = req.body;
-  await patchUser<Pick<IUser, 'name' | 'about'>>(req, res, next, { name, about });
+  await patchUser(req, res, next, { name, about });
 };
 
 export const patchUserAvatar = async (req: RequestCustom, res: Response, next: NextFunction) => {
   const { avatar } = req.body;
-  await patchUser<Pick<IUser, 'avatar'>>(req, res, next, { avatar });
+  await patchUser(req, res, next, { avatar });
 };
 
 export const login = async (req: RequestCustom, res: Response, next: NextFunction) => {
