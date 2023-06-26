@@ -1,6 +1,6 @@
 {
   "name": "starterkits",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "MestoProject API",
   "main": "dist/app.js",
   "scripts": {
