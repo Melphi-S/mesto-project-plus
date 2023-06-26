@@ -9,7 +9,7 @@ import rootRouter from './routes/root';
 
 require('dotenv').config();
 
-const { PORT } = process.env;
+const { PORT = 3000 } = process.env;
 
 const app = express();
 
